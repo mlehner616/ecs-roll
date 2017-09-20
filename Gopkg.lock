@@ -2,10 +2,28 @@
 
 
 [[projects]]
+  name = "github.com/aws/aws-sdk-go"
+  packages = ["aws","aws/awserr","aws/awsutil","aws/client","aws/client/metadata","aws/corehandlers","aws/credentials","aws/credentials/ec2rolecreds","aws/credentials/endpointcreds","aws/credentials/stscreds","aws/defaults","aws/ec2metadata","aws/endpoints","aws/request","aws/session","aws/signer/v4","internal/shareddefaults","private/protocol","private/protocol/json/jsonutil","private/protocol/jsonrpc","private/protocol/query","private/protocol/query/queryutil","private/protocol/rest","private/protocol/xml/xmlutil","service/ecs","service/sts"]
+  revision = "88849eea79e8e48241987b1f0a11a7a0dcbb7716"
+  version = "v1.10.46"
+
+[[projects]]
   name = "github.com/gizak/termui"
   packages = ["."]
   revision = "24acd523c756fd9728824cdfac66aad9d8982fb7"
   version = "v2.2.0"
+
+[[projects]]
+  name = "github.com/go-ini/ini"
+  packages = ["."]
+  revision = "20b96f641a5ea98f2f8619ff4f3e061cff4833bd"
+  version = "v1.28.2"
+
+[[projects]]
+  name = "github.com/jmespath/go-jmespath"
+  packages = ["."]
+  revision = "3433f3ea46d9f8019119e7dd41274e112a2359a9"
+  version = "0.2.2"
 
 [[projects]]
   name = "github.com/maruel/panicparse"
@@ -34,6 +52,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "eb2bfbf7b1fe6068673080b3ac94d6de7127c200c9fba7e5b9030a33cca70078"
+  inputs-digest = "cd28d185a643a36d4a1bcb65024ad62e29474833c01c6b5ae0548dd506ea8529"
   solver-name = "gps-cdcl"
   solver-version = 1
