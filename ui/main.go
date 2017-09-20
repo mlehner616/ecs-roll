@@ -2,6 +2,7 @@ package ui
 
 import (
 	ui "github.com/gizak/termui"
+	aws "github.com/onoffleftright/ecs-roll/pollster"
 )
 
 const logo = `8888888888  .d8888b.   .d8888b.                   888 888
@@ -25,7 +26,29 @@ func DoIt() {
 	banner.Height = getHeight(logo)
 	banner.Border = false
 
-	ui.Render(banner)
+	instanceList := ui.NewList()
+	instanceList.ItemFgColor = ui.ColorYellow
+	instanceList.BorderLabel = "Cluster Instances"
+	instanceList.Height = 10
+	go func() {
+		c := aws.GetContainerInstancesChannel("blackbird_microservices")
+		for {
+			instanceList.Items = <-c
+			ui.Render(ui.Body)
+		}
+	}()
+
+	ui.Body.AddRows(
+		ui.NewRow(
+			ui.NewCol(6, 0, banner),
+		),
+		ui.NewRow(
+			ui.NewCol(6, 0, instanceList),
+		),
+	)
+
+	ui.Body.Align()
+	ui.Render(ui.Body)
 
 	ui.Handle("/sys/kbd/q", func(ui.Event) {
 		ui.StopLoop()
