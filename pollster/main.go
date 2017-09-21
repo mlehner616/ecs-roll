@@ -19,7 +19,7 @@ func GetContainerInstancesChannel(clusterName string) <-chan []string {
 
 	go func() {
 		for {
-			instances, err := GetContainerInstances(clusterName)
+			instances, err := getContainerInstanceArns(clusterName)
 			if err != nil {
 				fmt.Println(err)
 			}
@@ -31,11 +31,11 @@ func GetContainerInstancesChannel(clusterName string) <-chan []string {
 	return c
 }
 
-func GetContainerInstances(clusterName string) ([]string, error) {
+func getContainerInstanceArns(clusterName string) ([]string, error) {
 	results := []string{}
 
 	if len(clusterName) == 0 {
-		return results, fmt.Errorf("received zero value for clusterName param")
+		return results, fmt.Errorf("received zero value for argument: clusterName")
 	}
 
 	err := svc.ListContainerInstancesPages(&ecs.ListContainerInstancesInput{
@@ -50,6 +50,36 @@ func GetContainerInstances(clusterName string) ([]string, error) {
 
 	if err != nil {
 		return results, err
+	}
+
+	return results, nil
+}
+
+func getContainerInstancesAttributes(clusterName string, containerInstanceIds []string) ([]ecs.ContainerInstance, error) {
+	results := []ecs.ContainerInstance{}
+
+	if len(clusterName) == 0 {
+		return results, fmt.Errorf("received zero value for argument: clusterName")
+	}
+
+	if len(containerInstanceIds) == 0 {
+		return results, fmt.Errorf("received empty slice for argument: containerInstanceIds")
+	}
+
+	response, err := svc.DescribeContainerInstances(&ecs.DescribeContainerInstancesInput{
+		Cluster:            aws.String(clusterName),
+		ContainerInstances: aws.StringSlice(containerInstanceIds),
+	})
+	if err != nil {
+		return results, fmt.Errorf("could not query the describe container instances API: %v", err)
+	}
+
+	if len(response.Failures) > 0 {
+		return results, fmt.Errorf("errors occured while querying the describe container instances API: %v", response.Failures)
+	}
+
+	for _, v := range response.ContainerInstances {
+		results = append(results, *v)
 	}
 
 	return results, nil
