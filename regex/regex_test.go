@@ -1,4 +1,4 @@
-package pollster
+package regex
 
 import "testing"
 

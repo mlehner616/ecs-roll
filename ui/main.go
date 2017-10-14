@@ -1,8 +1,11 @@
 package ui
 
 import (
+	"fmt"
+
 	ui "github.com/gizak/termui"
-	aws "github.com/onoffleftright/ecs-roll/pollster"
+	"github.com/onoffleftright/ecs-roll/pollster"
+	"github.com/onoffleftright/ecs-roll/regex"
 )
 
 const logo = `8888888888  .d8888b.   .d8888b.                   888 888
@@ -31,19 +34,30 @@ func DoIt() {
 	instanceList.BorderLabel = "Cluster Instances"
 	instanceList.Height = 10
 	go func() {
-		c := aws.GetContainerInstancesChannel("blackbird_microservices")
+		c := pollster.GetContainerInstancesChannel("microservices_20170925")
 		for {
-			instanceList.Items = <-c
+			containerInstances := <-c
+
+			items := make([]string, len(containerInstances))
+			for i, containerInstance := range containerInstances {
+				items[i] = fmt.Sprintf(
+					"%s %s",
+					parseContainerInstanceId(*containerInstance.ContainerInstanceArn),
+					*containerInstance.Ec2InstanceId,
+				)
+			}
+
+			instanceList.Items = items
 			ui.Render(ui.Body)
 		}
 	}()
 
 	ui.Body.AddRows(
 		ui.NewRow(
-			ui.NewCol(6, 0, banner),
+			ui.NewCol(12, 0, banner),
 		),
 		ui.NewRow(
-			ui.NewCol(6, 0, instanceList),
+			ui.NewCol(12, 0, instanceList),
 		),
 	)
 
@@ -55,4 +69,14 @@ func DoIt() {
 	})
 
 	ui.Loop()
+}
+
+func parseContainerInstanceId(containterInstanceArn string) string {
+	out, err := regex.ParseContainerInstanceId(containterInstanceArn)
+	if err != nil {
+		fmt.Println(err)
+		return "ERROR"
+	}
+
+	return out
 }

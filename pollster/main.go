@@ -3,6 +3,8 @@ package pollster
 import (
 	"fmt"
 
+	"github.com/onoffleftright/ecs-roll/regex"
+
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/ecs"
@@ -14,17 +16,34 @@ func init() {
 	svc = ecs.New(session.New())
 }
 
-func GetContainerInstancesChannel(clusterName string) <-chan []string {
-	c := make(chan []string)
+func GetContainerInstancesChannel(clusterName string) <-chan []ecs.ContainerInstance {
+	c := make(chan []ecs.ContainerInstance)
 
 	go func() {
 		for {
-			instances, err := getContainerInstanceArns(clusterName)
+			instanceArns, err := getContainerInstanceArns(clusterName)
 			if err != nil {
 				fmt.Println(err)
 			}
 
-			c <- instances
+			instanceIds := make([]string, len(instanceArns))
+			for i, v := range instanceArns {
+				instanceId, err := regex.ParseContainerInstanceId(v)
+				if err != nil {
+					fmt.Println(err)
+					continue
+				}
+
+				instanceIds[i] = instanceId
+			}
+
+			containerInstances, err := getContainerInstancesAttributes(clusterName, instanceIds)
+			if err != nil {
+				fmt.Println(err)
+				continue
+			}
+
+			c <- containerInstances
 		}
 	}()
 
