@@ -2,8 +2,10 @@ package ui
 
 import (
 	"fmt"
+	"strconv"
 
 	ui "github.com/gizak/termui"
+
 	"github.com/onoffleftright/ecs-roll/pollster"
 	"github.com/onoffleftright/ecs-roll/regex"
 )
@@ -29,25 +31,31 @@ func DoIt() {
 	banner.Height = getHeight(logo)
 	banner.Border = false
 
-	instanceList := ui.NewList()
-	instanceList.ItemFgColor = ui.ColorYellow
-	instanceList.BorderLabel = "Cluster Instances"
-	instanceList.Height = 10
+	instanceTable := ui.NewTable()
+	// instanceTable.FgColor = ui.ColorYellow
+	instanceTable.BorderLabel = "Cluster Instances"
+	instanceTable.Separator = false
+	instanceTable.Height = 10
 	go func() {
 		c := pollster.GetContainerInstancesChannel("microservices_20170925")
 		for {
 			containerInstances := <-c
 
-			items := make([]string, len(containerInstances))
-			for i, containerInstance := range containerInstances {
-				items[i] = fmt.Sprintf(
-					"%s %s",
-					parseContainerInstanceId(*containerInstance.ContainerInstanceArn),
-					*containerInstance.Ec2InstanceId,
-				)
+			rows := [][]string{
+				[]string{"Container Instance", "EC2 Instance", "Agent Connected", "Status", "Running Tasks"},
 			}
 
-			instanceList.Items = items
+			for _, containerInstance := range containerInstances {
+				rows = append(rows, []string{
+					parseContainerInstanceId(*containerInstance.ContainerInstanceArn),
+					*containerInstance.Ec2InstanceId,
+					iconizeBool(*containerInstance.AgentConnected),
+					colorizeStatus(*containerInstance.Status),
+					strconv.Itoa(int(*containerInstance.RunningTasksCount)),
+				})
+			}
+
+			instanceTable.Rows = rows
 			ui.Render(ui.Body)
 		}
 	}()
@@ -57,7 +65,7 @@ func DoIt() {
 			ui.NewCol(12, 0, banner),
 		),
 		ui.NewRow(
-			ui.NewCol(12, 0, instanceList),
+			ui.NewCol(12, 0, instanceTable),
 		),
 	)
 
@@ -79,4 +87,23 @@ func parseContainerInstanceId(containterInstanceArn string) string {
 	}
 
 	return out
+}
+
+func iconizeBool(b bool) string {
+	if b {
+		return "✓"
+	}
+
+	return "x"
+}
+
+func colorizeStatus(s string) string {
+	switch s {
+	case "ACTIVE":
+		return "[ACTIVE](fg-green)"
+	case "DRAINING":
+		return "[DRAINING](fg-yellow)"
+	}
+
+	return s
 }
