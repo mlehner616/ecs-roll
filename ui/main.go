@@ -3,7 +3,10 @@ package ui
 import (
 	"fmt"
 	"strconv"
+	"strings"
+	"time"
 
+	"github.com/aws/aws-sdk-go/service/ecs"
 	ui "github.com/gizak/termui"
 
 	"github.com/onoffleftright/ecs-roll/pollster"
@@ -42,7 +45,7 @@ func DoIt() {
 			containerInstances := <-c
 
 			rows := [][]string{
-				[]string{"Container Instance", "EC2 Instance", "Agent Connected", "Status", "Running Tasks"},
+				[]string{"Container Instance", "EC2 Instance", "Agent Connected", "Status", "Running Tasks", "CPU Available", "Mem Available", "Agent Version", "Docker Version", "Registered at"},
 			}
 
 			for _, containerInstance := range containerInstances {
@@ -52,6 +55,11 @@ func DoIt() {
 					iconizeBool(*containerInstance.AgentConnected),
 					colorizeStatus(*containerInstance.Status),
 					strconv.Itoa(int(*containerInstance.RunningTasksCount)),
+					strconv.Itoa(int(getIntEcsResource(containerInstance.RemainingResources, "CPU"))),
+					strconv.Itoa(int(getIntEcsResource(containerInstance.RemainingResources, "MEMORY"))),
+					*containerInstance.VersionInfo.AgentVersion,
+					strings.Replace(*containerInstance.VersionInfo.DockerVersion, "DockerVersion: ", "", -1),
+					containerInstance.RegisteredAt.Format(time.RFC1123),
 				})
 			}
 
@@ -91,10 +99,10 @@ func parseContainerInstanceId(containterInstanceArn string) string {
 
 func iconizeBool(b bool) string {
 	if b {
-		return "✓"
+		return "[✓](fg-green)"
 	}
 
-	return "x"
+	return "[x](fg-red)"
 }
 
 func colorizeStatus(s string) string {
@@ -106,4 +114,14 @@ func colorizeStatus(s string) string {
 	}
 
 	return s
+}
+
+func getIntEcsResource(resources []*ecs.Resource, name string) int64 {
+	for _, r := range resources {
+		if *r.Name == name {
+			return *r.IntegerValue
+		}
+	}
+
+	return 0
 }
