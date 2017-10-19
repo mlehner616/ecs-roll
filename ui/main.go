@@ -1,16 +1,13 @@
 package ui
 
 import (
-	"fmt"
 	"strconv"
 	"strings"
 	"time"
 
-	"github.com/aws/aws-sdk-go/service/ecs"
 	ui "github.com/gizak/termui"
 
 	"github.com/onoffleftright/ecs-roll/pollster"
-	"github.com/onoffleftright/ecs-roll/regex"
 )
 
 const logo = `8888888888  .d8888b.   .d8888b.                   888 888
@@ -35,7 +32,6 @@ func DoIt() {
 	banner.Border = false
 
 	instanceTable := ui.NewTable()
-	// instanceTable.FgColor = ui.ColorYellow
 	instanceTable.BorderLabel = "Cluster Instances"
 	instanceTable.Separator = false
 	instanceTable.Height = 10
@@ -85,43 +81,4 @@ func DoIt() {
 	})
 
 	ui.Loop()
-}
-
-func parseContainerInstanceId(containterInstanceArn string) string {
-	out, err := regex.ParseContainerInstanceId(containterInstanceArn)
-	if err != nil {
-		fmt.Println(err)
-		return "ERROR"
-	}
-
-	return out
-}
-
-func iconizeBool(b bool) string {
-	if b {
-		return "[✓](fg-green)"
-	}
-
-	return "[x](fg-red)"
-}
-
-func colorizeStatus(s string) string {
-	switch s {
-	case "ACTIVE":
-		return "[ACTIVE](fg-green)"
-	case "DRAINING":
-		return "[DRAINING](fg-yellow)"
-	}
-
-	return s
-}
-
-func getIntEcsResource(resources []*ecs.Resource, name string) int64 {
-	for _, r := range resources {
-		if *r.Name == name {
-			return *r.IntegerValue
-		}
-	}
-
-	return 0
 }
