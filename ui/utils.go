@@ -18,6 +18,26 @@ func parseContainerInstanceId(containterInstanceArn string) string {
 	return out
 }
 
+func parseTaskArn(taskArn string) string {
+	out, err := regex.ParseTaskArn(taskArn)
+	if err != nil {
+		fmt.Println(err)
+		return "ERROR"
+	}
+
+	return out
+}
+
+func parseTaskDefinitionArn(taskDefinitionArn string) string {
+	out, err := regex.ParseTaskDefinitionArn(taskDefinitionArn)
+	if err != nil {
+		fmt.Println(err)
+		return "ERROR"
+	}
+
+	return out
+}
+
 func iconizeBool(b bool) string {
 	if b {
 		return "[✓](fg-green)"

@@ -148,8 +148,8 @@ func renderContainerInstanceDetailView() {
 
 	for _, t := range tasks {
 		rows = append(rows, []string{
-			*t.TaskArn,
-			*t.TaskDefinitionArn,
+			parseTaskArn(*t.TaskArn),
+			parseTaskDefinitionArn(*t.TaskDefinitionArn),
 		})
 	}
 
