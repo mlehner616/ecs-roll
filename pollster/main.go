@@ -2,6 +2,7 @@ package pollster
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/onoffleftright/ecs-roll/regex"
 
@@ -19,31 +20,37 @@ func init() {
 func GetContainerInstancesChannel(clusterName string) <-chan []ecs.ContainerInstance {
 	c := make(chan []ecs.ContainerInstance)
 
+	updateRate := time.Duration(1) * time.Second
+	ticker := time.Tick(updateRate)
+
 	go func() {
 		for {
-			instanceArns, err := getContainerInstanceArns(clusterName)
-			if err != nil {
-				fmt.Println(err)
-			}
+			select {
+			case <-ticker:
+				instanceArns, err := getContainerInstanceArns(clusterName)
+				if err != nil {
+					fmt.Println(err)
+				}
 
-			instanceIds := make([]string, len(instanceArns))
-			for i, v := range instanceArns {
-				instanceId, err := regex.ParseContainerInstanceId(v)
+				instanceIds := make([]string, len(instanceArns))
+				for i, v := range instanceArns {
+					instanceId, err := regex.ParseContainerInstanceId(v)
+					if err != nil {
+						fmt.Println(err)
+						continue
+					}
+
+					instanceIds[i] = instanceId
+				}
+
+				containerInstances, err := getContainerInstancesAttributes(clusterName, instanceIds)
 				if err != nil {
 					fmt.Println(err)
 					continue
 				}
 
-				instanceIds[i] = instanceId
+				c <- containerInstances
 			}
-
-			containerInstances, err := getContainerInstancesAttributes(clusterName, instanceIds)
-			if err != nil {
-				fmt.Println(err)
-				continue
-			}
-
-			c <- containerInstances
 		}
 	}()
 
@@ -158,21 +165,33 @@ func getTaskAttributes(clusterName string, taskArns []string) ([]ecs.Task, error
 func GetTaskAttributesChannel(clusterName, containerInstanceArn string) <-chan []ecs.Task {
 	c := make(chan []ecs.Task)
 
+	updateRate := time.Duration(1) * time.Second
+	ticker := time.Tick(updateRate)
+
 	go func() {
 		for {
-			taskArns, err := getTaskArns(clusterName, containerInstanceArn)
-			if err != nil {
-				fmt.Println(err)
-				continue
-			}
+			select {
+			case <-ticker:
 
-			tasks, err := getTaskAttributes(clusterName, taskArns)
-			if err != nil {
-				fmt.Println(err)
-				continue
-			}
+				taskArns, err := getTaskArns(clusterName, containerInstanceArn)
+				if err != nil {
+					fmt.Println(err)
+					continue
+				}
 
-			c <- tasks
+				// Nothing to do this loop
+				if len(taskArns) == 0 {
+					continue
+				}
+
+				tasks, err := getTaskAttributes(clusterName, taskArns)
+				if err != nil {
+					fmt.Println(err)
+					continue
+				}
+
+				c <- tasks
+			}
 		}
 	}()
 

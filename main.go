@@ -18,10 +18,11 @@ func main() {
 		}
 	}()
 
+	var activeTaskAttributesChan <-chan []ecs.Task
 	ui.HandleCurrentRowSelectionChange(func(c ecs.ContainerInstance) {
-		ch := pollster.GetTaskAttributesChannel(CLUSTER_NAME, *c.ContainerInstanceArn)
+		activeTaskAttributesChan = pollster.GetTaskAttributesChannel(CLUSTER_NAME, *c.ContainerInstanceArn)
 		for {
-			tasks := <-ch
+			tasks := <-activeTaskAttributesChan
 			ui.UpdateTasks(tasks)
 		}
 	})
