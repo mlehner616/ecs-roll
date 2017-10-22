@@ -46,7 +46,7 @@ func iconizeBool(b bool) string {
 	return "[x](fg-red)"
 }
 
-func colorizeStatus(s string) string {
+func colorizeContainerInstanceStatus(s string) string {
 	switch s {
 	case "ACTIVE":
 		return "[ACTIVE](fg-green)"
@@ -65,4 +65,17 @@ func getIntEcsResource(resources []*ecs.Resource, name string) int64 {
 	}
 
 	return 0
+}
+
+func colorizeTaskStatus(s string) string {
+	switch s {
+	case "RUNNING":
+		return "[RUNNING](fg-green)"
+	case "PENDING":
+		return "[PENDING](fg-yellow)"
+	case "STOPPED":
+		return "[STOPPED](fg-red)"
+	}
+
+	return s
 }

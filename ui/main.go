@@ -97,7 +97,18 @@ func Run() {
 
 func renderContainerInstancesView() {
 	rows := [][]string{
-		[]string{"Container Instance", "EC2 Instance", "Agent Connected", "Status", "Running Tasks", "CPU Available", "Mem Available", "Agent Version", "Docker Version", "Registered at"},
+		[]string{
+			"[Container Instance](fg-bold)",
+			"[EC2 Instance](fg-bold)",
+			"[Agent Connected](fg-bold)",
+			"[Status](fg-bold)",
+			"[Running Tasks](fg-bold)",
+			"[CPU Available](fg-bold)",
+			"[Mem Available](fg-bold)",
+			"[Agent Version](fg-bold)",
+			"[Docker Version](fg-bold)",
+			"[Registered at](fg-bold)",
+		},
 	}
 
 	for _, containerInstance := range containerInstances {
@@ -105,7 +116,7 @@ func renderContainerInstancesView() {
 			parseContainerInstanceId(*containerInstance.ContainerInstanceArn),
 			*containerInstance.Ec2InstanceId,
 			iconizeBool(*containerInstance.AgentConnected),
-			colorizeStatus(*containerInstance.Status),
+			colorizeContainerInstanceStatus(*containerInstance.Status),
 			strconv.Itoa(int(*containerInstance.RunningTasksCount)),
 			strconv.Itoa(int(getIntEcsResource(containerInstance.RemainingResources, "CPU"))),
 			strconv.Itoa(int(getIntEcsResource(containerInstance.RemainingResources, "MEMORY"))),
@@ -143,13 +154,20 @@ func HandleCurrentRowSelectionChange(f func(c ecs.ContainerInstance)) {
 
 func renderContainerInstanceDetailView() {
 	rows := [][]string{
-		[]string{"Task", "Task Definition"},
+		[]string{
+			"[Task](fg-bold)",
+			"[Task Definition](fg-bold)",
+			"[Last Status](fg-bold)",
+			"[Desired Status](fg-bold)",
+		},
 	}
 
 	for _, t := range tasks {
 		rows = append(rows, []string{
 			parseTaskArn(*t.TaskArn),
 			parseTaskDefinitionArn(*t.TaskDefinitionArn),
+			colorizeTaskStatus(*t.LastStatus),
+			*t.DesiredStatus,
 		})
 	}
 
