@@ -8,36 +8,49 @@ import (
 	"github.com/aws/aws-sdk-go/service/ecs"
 )
 
-func GetTaskAttributesChannel(clusterName, containerInstanceArn string) <-chan []ecs.Task {
-	c := make(chan []ecs.Task)
+func GetTaskAttributesChannel(clusterName, containerInstanceArn string) (<-chan []ecs.Task, chan<- bool) {
+	data := make(chan []ecs.Task)
+	stop := make(chan bool)
 
 	updateRate := time.Duration(1) * time.Second
+	ticker := time.Tick(updateRate)
 
 	go func() {
+		// Send immediately for the initial load, don't wait on ticker
+		data <- getTasksAndHandleErrors(clusterName, containerInstanceArn)
+
 		for {
-			taskArns, err := getTaskArns(clusterName, containerInstanceArn)
-			if err != nil {
-				fmt.Println(err)
-				continue
+			select {
+			case <-stop:
+				return
+			case <-ticker:
+				data <- getTasksAndHandleErrors(clusterName, containerInstanceArn)
 			}
-
-			// Nothing to do this loop
-			if len(taskArns) == 0 {
-				continue
-			}
-
-			tasks, err := getTaskAttributes(clusterName, taskArns)
-			if err != nil {
-				fmt.Println(err)
-				continue
-			}
-
-			c <- tasks
-			time.Sleep(updateRate)
 		}
 	}()
 
-	return c
+	return data, stop
+}
+
+func getTasksAndHandleErrors(clusterName, containerInstanceArn string) []ecs.Task {
+	taskArns, err := getTaskArns(clusterName, containerInstanceArn)
+	if err != nil {
+		fmt.Println(err)
+		return []ecs.Task{}
+	}
+
+	// Nothing to do this loop
+	if len(taskArns) == 0 {
+		return []ecs.Task{}
+	}
+
+	tasks, err := getTaskAttributes(clusterName, taskArns)
+	if err != nil {
+		fmt.Println(err)
+		return []ecs.Task{}
+	}
+
+	return tasks
 }
 
 func getTaskArns(clusterName, containerInstanceArn string) ([]string, error) {

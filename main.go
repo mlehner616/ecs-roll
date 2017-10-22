@@ -18,11 +18,16 @@ func main() {
 		}
 	}()
 
-	var activeTaskAttributesChan <-chan []ecs.Task
+	var activeTaskAttributesDataChan <-chan []ecs.Task
+	var activeTaskAttributesStopChan chan<- bool
 	ui.HandleCurrentRowSelectionChange(func(c ecs.ContainerInstance) {
-		activeTaskAttributesChan = pollster.GetTaskAttributesChannel(CLUSTER_NAME, *c.ContainerInstanceArn)
+		if activeTaskAttributesStopChan != nil {
+			activeTaskAttributesStopChan <- true
+		}
+
+		activeTaskAttributesDataChan, activeTaskAttributesStopChan = pollster.GetTaskAttributesChannel(CLUSTER_NAME, *c.ContainerInstanceArn)
 		for {
-			tasks := <-activeTaskAttributesChan
+			tasks := <-activeTaskAttributesDataChan
 			ui.UpdateTasks(tasks)
 		}
 	})
