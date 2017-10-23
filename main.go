@@ -1,8 +1,10 @@
 package main
 
 import (
-	"github.com/aws/aws-sdk-go/service/ecs"
+	"fmt"
 
+	"github.com/aws/aws-sdk-go/service/ecs"
+	"github.com/onoffleftright/ecs-roll/management"
 	"github.com/onoffleftright/ecs-roll/pollster"
 	"github.com/onoffleftright/ecs-roll/ui"
 )
@@ -29,6 +31,19 @@ func main() {
 		for {
 			tasks := <-activeTaskAttributesDataChan
 			ui.UpdateTasks(tasks)
+		}
+	})
+
+	ui.HandleToggleDrainContainerInstance(func(c ecs.ContainerInstance) {
+		switch *c.Status {
+		case "ACTIVE":
+			if err := management.SetContainerInstanceState(CLUSTER_NAME, *c.ContainerInstanceArn, management.Draining); err != nil {
+				fmt.Println(err)
+			}
+		case "DRAINING":
+			if err := management.SetContainerInstanceState(CLUSTER_NAME, *c.ContainerInstanceArn, management.Active); err != nil {
+				fmt.Println(err)
+			}
 		}
 	})
 

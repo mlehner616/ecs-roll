@@ -23,6 +23,7 @@ var currentRowSelection int
 var containerInstanceView *ui.Table
 var containerInstances []ecs.ContainerInstance
 var currentRowSelectionChangeHandler func(c ecs.ContainerInstance)
+var toggleDrainContainerInstanceHandler func(c ecs.ContainerInstance)
 
 // Task view members
 var taskView *ui.Table
@@ -66,6 +67,7 @@ func init() {
 
 	// Dummy handler if not registered
 	currentRowSelectionChangeHandler = func(c ecs.ContainerInstance) {}
+	toggleDrainContainerInstanceHandler = func(c ecs.ContainerInstance) {}
 
 	ui.Handle("/sys/kbd/q", func(ui.Event) {
 		ui.StopLoop()
@@ -86,11 +88,19 @@ func init() {
 			currentRowSelectionChangeHandler(containerInstances[currentRowSelection])
 		}
 	})
+
+	ui.Handle("/sys/kbd/d", func(ui.Event) {
+		toggleDrainContainerInstanceHandler(containerInstances[currentRowSelection])
+	})
 }
 
 func Run() {
 	ui.Loop()
 	defer ui.Close()
+}
+
+func Stop() {
+	ui.StopLoop()
 }
 
 // Container Instance View funcs
@@ -148,6 +158,10 @@ func UpdateContainerInstances(c []ecs.ContainerInstance) {
 
 func HandleCurrentRowSelectionChange(f func(c ecs.ContainerInstance)) {
 	currentRowSelectionChangeHandler = f
+}
+
+func HandleToggleDrainContainerInstance(f func(c ecs.ContainerInstance)) {
+	toggleDrainContainerInstanceHandler = f
 }
 
 // Individual Container Instance Detail View
