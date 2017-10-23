@@ -9,14 +9,14 @@ import (
 	ui "github.com/gizak/termui"
 )
 
-const logo = `8888888888  .d8888b.   .d8888b.                   888 888
-888        d88P  Y88b d88P  Y88b                  888 888
-888        888    888 Y88b.                       888 888
-8888888    888         "Y888b.   888d888  .d88b.  888 888
-888        888            "Y88b. 888P"   d88""88b 888 888
-888        888    888       "888 888     888  888 888 888
-888        Y88b  d88P Y88b  d88P 888     Y88..88P 888 888
-8888888888  "Y8888P"   "Y8888P"  888      "Y88P"  888 888`
+const logo = `[8888888888  .d8888b.   .d8888b.](fg-yellow)  [                 888 888](fg-yellow,fg-bold)
+[888        d88P  Y88b d88P  Y88b](fg-yellow) [                 888 888](fg-yellow,fg-bold)
+[888        888    888 Y88b.     ](fg-yellow) [                 888 888](fg-yellow,fg-bold)
+[8888888    888         "Y888b.  ](fg-yellow) [888d888  .d88b.  888 888](fg-yellow,fg-bold)
+[888        888            "Y88b.](fg-yellow) [888P"   d88""88b 888 888](fg-yellow,fg-bold)
+[888        888    888       "888](fg-yellow) [888     888  888 888 888](fg-yellow,fg-bold)
+[888        Y88b  d88P Y88b  d88P](fg-yellow) [888     Y88..88P 888 888](fg-yellow,fg-bold)
+[8888888888  "Y8888P"   "Y8888P" ](fg-yellow) [888      "Y88P"  888 888](fg-yellow,fg-bold)`
 
 // Container Instance view members
 var currentRowSelection int
